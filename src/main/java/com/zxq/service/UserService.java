@@ -45,6 +45,8 @@ public class UserService {
             User query = new User();
             query.setUsername(username);
             query.setPassword(pwd);
+//            List<User> users = userMapper.selectAll();
+//            return users.get(0);
             return userMapper.selectOne(query);
         }
         return null;

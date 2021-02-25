@@ -1,8 +1,8 @@
 package com.zxq.controller;
 
+
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
-import cn.hutool.core.util.StrUtil;
 import com.zxq.constant.JobConstant;
 import com.zxq.model.po.User;
 import com.zxq.model.query.UserQuery;
@@ -62,7 +62,7 @@ public class UserController {
     @ResponseBody
     public ResultVO auth(@RequestParam String username, @RequestParam String password, @RequestParam String verityCode) {
         String verityCodeInSession = SessionUtil.getVerityCode();
-        if (StrUtil.isBlank(verityCodeInSession) || !verityCodeInSession.equals(verityCode)) {
+        if (StringUtils.isBlank(verityCodeInSession) || !verityCodeInSession.equals(verityCode)) {
             return ResultVO.failure("验证码错误");
         } else {
             User user = userService.auth(username, password);
@@ -85,7 +85,7 @@ public class UserController {
     @RequestMapping("/editPwd")
     @ResponseBody
     public ResultVO editPwd(@RequestParam String oldPwd, @RequestParam String newPwd) {
-        if (StrUtil.isBlank(oldPwd) || StrUtil.isBlank(newPwd)) {
+        if (StringUtils.isBlank(oldPwd) || StringUtils.isBlank(newPwd)) {
             return ResultVO.failure("参数缺失");
         }
         String res = userService.editPwd(oldPwd, newPwd);
@@ -116,10 +116,10 @@ public class UserController {
     @RequestMapping("/addUser")
     @ResponseBody
     public ResultVO addUser(User user) {
-        if (StrUtil.isBlank(user.getUsername())) {
+        if (StringUtils.isBlank(user.getUsername())) {
             return ResultVO.failure("用户名不能为空");
         }
-        if (StrUtil.isBlank(user.getPassword())) {
+        if (StringUtils.isBlank(user.getPassword())) {
             return ResultVO.failure("登录密码不能为空");
         }
         if (user.getRole() == null) {

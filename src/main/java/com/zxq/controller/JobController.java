@@ -1,8 +1,6 @@
 package com.zxq.controller;
 
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
+
 import cn.hutool.json.JSONUtil;
 import com.zxq.constant.JobConstant;
 import com.zxq.constant.JobEnums;
@@ -17,12 +15,13 @@ import com.zxq.service.JobService;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.CronExpression;
 import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 
@@ -58,24 +57,24 @@ public class JobController {
      * @return
      */
     private String commonValidate(JobInfoBO jobInfoBO) {
-        if (StrUtil.isBlank(jobInfoBO.getTitle())) {
+        if (StringUtils.isBlank(jobInfoBO.getTitle())) {
             return "任务名称不能为空";
         }
-        if (StrUtil.isBlank(jobInfoBO.getUrl())) {
+        if (StringUtils.isBlank(jobInfoBO.getUrl())) {
             return "URL地址不能为空";
         }
-        if (StrUtil.isBlank(jobInfoBO.getMethod())) {
+        if (StringUtils.isBlank(jobInfoBO.getMethod())) {
             return "请求方式不能为空";
         }
-        if (StrUtil.isBlank(jobInfoBO.getJobGroupName()) && jobInfoBO.getJobGroupId() == null) {
+        if (StringUtils.isBlank(jobInfoBO.getJobGroupName()) && jobInfoBO.getJobGroupId() == null) {
             return "业务部门不能为空";
         }
         // 校验corn表达式
-        if(!CronExpression.isValidExpression(jobInfoBO.getCron())) {
+        if(CronExpression.isValidExpression(jobInfoBO.getCron())) {
             return "非法的任务corn表达式";
         }
         // 有参数，校验参数是否为json格式
-        if (StrUtil.isNotBlank(jobInfoBO.getParams()) && !JSONUtil.isJson(jobInfoBO.getParams())) {
+        if (StringUtils.isNoneBlank(jobInfoBO.getParams()) && !JSONUtil.isJson(jobInfoBO.getParams())) {
             return "非法的任务参数格式";
         }
         return JobConstant.SUCCESS_CODE;
@@ -122,7 +121,7 @@ public class JobController {
     /**
      * 暂停一个http定时任务
      * @return
-     * @throws SchedulerException
+     * @throws Exception
      */
     @RequestMapping("/pauseJob")
     public ResultVO pauseJob(@RequestParam(name = "jobInfoId") Integer jobInfoId) {
@@ -212,17 +211,22 @@ public class JobController {
      */
     @RequestMapping("/getReportStatistic")
     public ResultVO getReportStatistic(String startTime, String endTime) {
-        Date startDate;
-        Date endDate;
-        if (StrUtil.isNotBlank(startTime) && StrUtil.isNotBlank(endTime)) {
-            startDate = DateUtil.parseDateTime(startTime);
-            endDate = DateUtil.parseDateTime(endTime);
-        } else if (StrUtil.isBlank(startTime) && StrUtil.isBlank(endTime)) {
-            // 默认统计过去一周数据
-            DateTime date = DateUtil.date();
-            startDate = DateUtil.beginOfDay(DateUtil.offsetDay(date, -6));
-            endDate = DateUtil.endOfDay(date);
-        } else {
+        Date startDate, endDate;
+
+        // 默认统计过去一周数据
+        Calendar calendar = Calendar.getInstance();
+        endDate = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_MONTH, -7);
+        startDate = calendar.getTime();
+
+        if (StringUtils.isNotBlank(startTime) && StringUtils.isNotBlank(endTime)) {
+            try {
+                startDate = new SimpleDateFormat("HH:mm:ss").parse(startTime);
+                endDate = new SimpleDateFormat("HH:mm:ss").parse(endTime);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else {
             return ResultVO.failure("params error");
         }
         Map<String, Object> reportStatistic = jobService.getReportStatistic(startDate, endDate);
